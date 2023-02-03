@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "reality-game-be"
+version = "0.1.0"
+description = ""
+authors = ["CXPhoenix <jate9229@gmail.com>"]
+readme = "README.md"
+packages = [{include = "reality_game_be"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.89.1"
+deta = "^1.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
