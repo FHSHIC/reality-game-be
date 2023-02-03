@@ -2,6 +2,10 @@ from typing import List, Union
 from pydantic import BaseModel
 from __DetaDB import DataBase
 
-class UserDB:
+
+
+
+
+class DramaDB:
     def __init__(self):
-        return DataBase().Base("users")
+        return DataBase().Base("dramas")
