@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from fastapi import FastAPI
-import apis
+from .routers import *
 
 app = FastAPI()
 
