@@ -1,0 +1,42 @@
+@startuml
+class User {
+    String _id = self.email
+    String email
+    String username
+    String password: hash.sha256.hexdiagest
+    String accessToken: hash.sha256.hexdiagest
+    String teamId
+}
+
+class Team {
+    String _id = self.gameCode
+    String gameCode
+    String teamName
+    String spendingTime
+    String teamStatus: ["pending", "fin", "alive"]
+    String nowLevelId
+    Array[User._id] member
+}
+
+class Level {
+    String _id
+    String levelName
+    Array[Hint._id] levelHints
+    String answer
+    String levelToken
+    String nextLevelToken
+}
+
+class Hint {
+    String _id
+    String hintName
+    String hintContent
+}
+
+class Drama {
+    String _id
+    Array dramaContent
+    String dramaToken
+    String nextDramaId
+}
+@enduml
