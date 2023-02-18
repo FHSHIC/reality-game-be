@@ -1,6 +1,6 @@
 import base64
 import hashlib
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr, constr
 from pymongo import MongoClient
 from deta import Deta
@@ -9,12 +9,7 @@ from datetime import datetime, timedelta
 
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 db = deta.Base("users")
-app = FastAPI()
-
-# # MongoDB 配置
-# client = MongoClient('mongodb://localhost:27017')
-# db = client['mydatabase']
-# collection = db['dramas']
+router = APIRouter()
 
 def utc8() -> datetime:
     return datetime.utcnow() + timedelta(hours=8)
@@ -27,12 +22,12 @@ def token(email: str, expiredTime: str) -> str:
 class User(BaseModel):
     email:EmailStr
     username:str
-    password:str#hash.sha256.hexdiagest
-    accessToken:str#hash.sha256.hexdiagest
+    password:str
+    accessToken:str
     teamId:str
 
 
-@app.post("/signup")
+@router.post("/signup")
 async def sign_up(SignUp:User):
     user = db.get(SignUp.email)
     if user:

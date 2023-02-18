@@ -1,9 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List
 from deta import Deta
 
-app = FastAPI()
+router = APIRouter()
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 drama = deta.Base("drama")
 
@@ -14,7 +14,7 @@ class Drama (BaseModel):
     nextDramaId:str = None
     token:str 
 
-@app.post("/drama")
+@router.post("/drama")
 def get_drama(Drama:Drama):
     if Drama.token == "":
         raise HTTPException(status_code=403, detail="請檢查token是否輸入正確")

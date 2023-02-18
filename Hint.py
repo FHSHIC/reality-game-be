@@ -1,7 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from deta import Deta
-app = FastAPI()
+router = APIRouter()
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 hint = deta.Base("Hint")
 
@@ -11,7 +11,7 @@ class Hint(BaseModel):
     hintContent:str = None
     token:str
 
-@app.post("/hint")
+@router.post("/hint")
 def get_Hint(Hint:Hint):
     if Hint.token == "":
         raise HTTPException(status_code=403, detail="請檢查token是否輸入正確")
