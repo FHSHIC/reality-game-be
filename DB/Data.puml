@@ -1,42 +1,47 @@
+# use deta base
+
 @startuml
 class User {
-    String _id = self.email
+    String key = self.email
     String email
     String username
     String password: hash.sha256.hexdiagest
+    String expiredTime: format(YYYY-MM-DDThh:mm:ss)
     String accessToken: hash.sha256.hexdiagest
-    String teamId
+    String teamKey: Team.key
+    Array[Team.key] historyTeamKey
 }
 
 class Team {
-    String _id = self.gameCode
+    String key = self.gameCode
     String gameCode
     String teamName
-    String spendingTime
+    Array[{String levelid, int spendTime: milisecond}] spendTimes
     String teamStatus: ["pending", "fin", "alive"]
-    String nowLevelId
-    Array[User._id] member
+    String nowLevelKey
+    Array[User.key] member
 }
 
 class Level {
-    String _id
+    String key
     String levelName
-    Array[Hint._id] levelHints
+    Array[Hint.key] levelHints
     String answer
     String levelToken
     String nextLevelToken
 }
 
 class Hint {
-    String _id
+    String key
     String hintName
     String hintContent
 }
 
 class Drama {
-    String _id
-    Array dramaContent
+    String key
+    Array[{speaker, speakContent, imgId}] dramaContents
     String dramaToken
-    String nextDramaId
+    String nextDramaKey
 }
+
 @enduml
