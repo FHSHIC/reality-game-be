@@ -2,7 +2,6 @@ import base64
 import hashlib
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr, constr
-from pymongo import MongoClient
 from deta import Deta
 from typing import Union
 from datetime import datetime, timedelta
