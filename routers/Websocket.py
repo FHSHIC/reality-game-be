@@ -4,13 +4,7 @@ from pydantic import BaseModel
 from fastapi.responses import HTMLResponse
 from deta import Deta
 import json
-
-router = APIRouter()
-
-deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
-
-playerdb = deta.Base("players")
-gamecodedb = deta.Base("gamecodes")
+import DetaBase
 
 class Player(BaseModel):
     key :str

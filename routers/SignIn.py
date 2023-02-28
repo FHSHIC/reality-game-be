@@ -5,11 +5,7 @@ from pydantic import BaseModel, EmailStr, constr
 from deta import Deta
 from datetime import datetime, timedelta
 from fastapi.responses import HTMLResponse
-
-router = APIRouter()
-
-deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
-db = deta.Base("User") 
+import DetaBase
 
 class SignIn(BaseModel):
     username:str
@@ -18,13 +14,13 @@ class SignIn(BaseModel):
 
 @router.post("/signin")
 async def sign_in(signIn: SignIn,access_token:str = Header(None)):
-    if access_token != db.get(signIn.email)["accessToken"]:
+    if access_token != userdb.get(signIn.email)["accessToken"]:
         raise HTTPException(status_code=401, detail="verification failed")
-    users = db.fetch({"email":signIn.email})
+    users = userdb.fetch({"email":signIn.email})
     if users.items == []:
         raise HTTPException(status_code=403, detail="請檢查email是否輸入正確")
     password_hash = hashlib.sha256(signIn.password.encode('utf-8')).hexdigest()
-    pwd_hash = db.fetch({"password":password_hash})
+    pwd_hash = userdb.fetch({"password":password_hash})
     if pwd_hash.items == []:
         raise HTTPException(status_code=403, detail="請檢查密碼是否輸入正確")
     return {"message":"登入成功"}

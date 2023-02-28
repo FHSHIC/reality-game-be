@@ -5,10 +5,7 @@ from pydantic import BaseModel, EmailStr, constr
 from deta import Deta
 from typing import Union
 from datetime import datetime, timedelta
-
-deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
-userdb = deta.Base("User")
-router = APIRouter()
+import DetaBase
 
 def utc8() -> datetime:
     return datetime.utcnow() + timedelta(hours=8)

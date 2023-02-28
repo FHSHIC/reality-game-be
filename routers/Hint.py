@@ -2,13 +2,7 @@ from fastapi import FastAPI, HTTPException, APIRouter
 from pydantic import BaseModel
 from typing import List
 from deta import Deta
-
-app = FastAPI()
-router = APIRouter()
-
-deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
-hintdb = deta.Base("Hint")
-
+import DetaBase
 
 class AccessToken(BaseModel):
     token: str
