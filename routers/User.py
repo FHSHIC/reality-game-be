@@ -44,9 +44,9 @@ async def getCurrentUser(user = Depends(verifyAcessToken)):
 async def login(user: UserLogin):
     findUser = userDb.getUser(user.account)
     if not findUser:
-        raise HTTPException(401, detail="the account or password error...")
+        raise HTTPException(404, detail="the account or password error...")
     if findUser["password"] != generateHashPassword(user.password):
-        raise HTTPException(401, detail="the account or password error...")
+        raise HTTPException(404, detail="the account or password error...")
     expiredTime = datetime.format(datetime.deltaTime("now", defaultExpiredSeconds))
     accessToken = generateAccessToken(user.account, expiredTime)
     newUser = userDb.updateUserAccessToken(user.account, accessToken, expiredTime)

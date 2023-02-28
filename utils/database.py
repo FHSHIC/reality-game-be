@@ -52,6 +52,7 @@ class DbTeam(BaseModel):
     teamName: str
     members: list
     isUsed: bool
+    isStart: bool
     nowLevelId: str
 
 class TeamDb:
@@ -93,3 +94,15 @@ class TeamDb:
         })
         return self.db.find_one(teamId)
         
+class DbDrama(BaseModel):
+    level: str
+    levelId: str
+    nextDramaId: str
+    dramaContent: list
+
+class DramaDb:
+    def __init__(self):
+        self.db = MockDb("dramas")
+        
+    def getDrama(self, dramaId):
+        return self.db.find_one(dramaId)

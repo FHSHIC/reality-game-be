@@ -5,6 +5,7 @@
         "teamName": "",
         "members":[],
         "isUsed": false,
+        "isStart": false,
         "nowLevelId": "3a629280e68"
     }
 ]
