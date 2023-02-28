@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from typing import List
 from pydantic import BaseModel
 from deta import Deta
+
+
 router = APIRouter()
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 leveldb = deta.Base("Answer")

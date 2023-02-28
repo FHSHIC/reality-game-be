@@ -6,9 +6,11 @@ from deta import Deta
 from typing import Union
 from datetime import datetime, timedelta
 
+router = APIRouter(prefix="/user", tags=["user"])
+
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 db = deta.Base("users")
-router = APIRouter()
+
 
 def utc8() -> datetime:
     return datetime.utcnow() + timedelta(hours=8)

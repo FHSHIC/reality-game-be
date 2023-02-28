@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr, constr
 from deta import Deta
 from datetime import datetime, timedelta
 
-router = APIRouter()
+router = APIRouter(prefix="/user", tags=["user"])
 
 deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 db = deta.Base("users") 
