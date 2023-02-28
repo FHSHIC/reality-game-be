@@ -89,10 +89,7 @@ class TeamDb:
         #         continue
         #     del(team["members"][i])
         #     break
-        try:
-            team["member"].remove(userId)
-        except:
-            return None
+        team["member"].remove(userId)
         self.db.update_one(teamId, {
             "members": team["members"]
         })

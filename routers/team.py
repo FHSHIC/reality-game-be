@@ -18,7 +18,7 @@ class Game(BaseModel):
 
 class TeamInfo(BaseModel):
     gamecode: str
-    name: str
+    teamName: str
 
 class Team(TeamInfo):
     members: list
@@ -36,14 +36,17 @@ async def getTeam(gamecode: str, user: dict = Depends(verifyAcessToken)):
 
 @router.post("/post-gamecode", response_model=Team)
 async def postGamecode(gameCode: Game, user: dict = Depends(verifyAcessToken)):
-    team = teamDb.getTeam(gameCode)
+    team = teamDb.getTeam(gameCode.code)
     if not team:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="you can't use this game code...")
     if team["isUsed"] or team["isStart"]:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't use this game code...")
+    if user["account"] in team["members"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you have already in this team")
     
-    return teamDb.memberJoin(gameCode, user["account"])
+    return teamDb.memberJoin(gameCode.code, user["account"])
     
+
 
 @router.post("/set-team")
 async def setTeamName(team: TeamInfo, user: dict = Depends(verifyAcessToken)):

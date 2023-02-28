@@ -27,6 +27,7 @@ class MockDb:
     
     def find_one(self, dataId) -> dict | None:
         result = list(filter(lambda x: x["_id"] == dataId, self.col))
+        
         return result[0] if len(result) > 0 else None
     
     def update_one(self, dataId, updateData) -> int:
