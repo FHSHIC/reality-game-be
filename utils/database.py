@@ -104,5 +104,27 @@ class DramaDb:
     def __init__(self):
         self.db = MockDb("dramas")
         
-    def getDrama(self, dramaId):
+    def getDrama(self, dramaId: str):
         return self.db.find_one(dramaId)
+
+class DbHint(BaseModel):
+    hintContent: str
+    
+class HintDb:
+    def __init__(self):
+        self.db = MockDb("hints")
+    
+    def getHint(self, hintId: str):
+        return self.db.find_one(hintId)
+
+class DbLevel(BaseModel):
+    answer: str
+    hints: list
+    nextDramaId: str
+
+class LevelDb:
+    def __init__(self):
+        self.db = MockDb("levels")
+    
+    def getLevel(self, levelId: str):
+        return self.db.find_one(levelId)
