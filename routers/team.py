@@ -22,7 +22,7 @@ class TeamInfo(BaseModel):
 
 class Team(TeamInfo):
     members: list
-    nowLevelId: str
+    nowDramaId: str
     
 @router.get("/{gamecode}", response_model=Team)
 async def getTeam(gamecode: str, user: dict = Depends(verifyAcessToken)):

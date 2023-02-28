@@ -53,7 +53,7 @@ class DbTeam(BaseModel):
     members: list
     isUsed: bool
     isStart: bool
-    nowLevelId: str
+    nowDramaId: str
 
 class TeamDb:
     def __init__(self):
@@ -128,3 +128,4 @@ class LevelDb:
     
     def getLevel(self, levelId: str):
         return self.db.find_one(levelId)
+    
