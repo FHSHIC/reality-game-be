@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 class TimeDate:
     def __init__(self, tz = "Asia/Taipei"):
-        self.tz = tz
+        self.tz = ZoneInfo(tz)
     
     def now(self):
         return datetime.now(tz=self.tz)
@@ -29,7 +29,7 @@ class TimeDate:
     def deltaTime(self, timeFrom, deltaSeconds: int) -> datetime:
         if timeFrom == "now":
             timeFrom = self.now()
-        return timeFrom + timedelta(seconds=deltaSeconds)
+        return timeFrom + timedelta(seconds=int(deltaSeconds))
     
     def format(self, datetimeTime: datetime) -> str:
         return datetimeTime.isoformat(timespec="seconds")

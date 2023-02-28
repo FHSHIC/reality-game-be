@@ -7,12 +7,25 @@ dramaDb = MockDb("dramas")
 levelDb = MockDb("levels")
 hintDb = MockDb("hints")
 
+class DbUser(BaseModel):
+    account: str
+    password: str
+    username: str
+    accessToken: str
+    expiredTime: str
+    gameHistory: list
+    userState: dict
+    
+
 class UserDb:
     def __init__(self):
         self.db = MockDb("users")
     
     def getUser(self, userId):
         return self.db.find_one(userId)
+    
+    def registUser(self, user:dict):
+        return self.db.insert_one(DbUser(**user).dict())
     
     def updateUserAccessToken(self, userId, userAccessToken, userExpiredTime):
         self.db.update_one(userId, {"accessToken": userAccessToken, "expiredTime": userExpiredTime})

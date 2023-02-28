@@ -10,24 +10,27 @@ class MockDb:
 
         dbList = ["users", "levels", "hints", "dramas", "teams"]
         jsonList = ["UserMock.json", "LevelMock.json", "HintMock.json", "DramaMock.json", "TeamMock.json"]
+        
+        self.dbMap = {}
 
         for i, db in enumerate(dbList):
             with open(f"{os.path.dirname(__file__)}/{jsonList[i]}") as f:
                 dbs[db] = json.load(f)
+            self.dbMap[db] = jsonList[i]
                 
         self.colName = collectName
         self.col = dbs[collectName]
         self.colId = [colData["_id"] for colData in self.col]
     
-    def find(slef, filte:dict = None) -> list:
+    def find(slef, filte: dict = None) -> list:
         return list(filter(lambda x: [x[f] == filte[f] for f in filte.keys()]))
     
     def find_one(self, dataId) -> dict | None:
-        result = list(filter(lambda x: x["_id"] == dataId))
+        result = list(filter(lambda x: x["_id"] == dataId, self.col))
         return result[0] if len(result) > 0 else None
     
     def update_one(self, dataId, updateData) -> int:
-        for i, data in self.col:
+        for i, data in enumerate(self.col):
             if data["_id"] != dataId:
                 continue
             for updateDataKey in updateData.keys():
@@ -38,8 +41,8 @@ class MockDb:
                 break
             self.col.insert(i, data)
             break
-        with open(f"{os.path.dirname(__file__)}/{self.colName}", 'w') as f:
-            f.write(self.col)
+        with open(f"{os.path.dirname(__file__)}/{self.dbMap[self.colName]}", 'w') as f:
+            f.write(json.dumps(self.col))
         return 0
     
     def insert_one(self, insertData: dict) -> dict:
@@ -50,8 +53,8 @@ class MockDb:
                 break
             
         self.col.append(insertData)
-        with open(f"{os.path.dirname(__file__)}/{self.colName}", 'w') as f:
-            f.write(self.col)
+        with open(f"{os.path.dirname(__file__)}/{self.dbMap[self.colName]}", 'w') as f:
+            f.write(json.dumps(self.col))
         return insertData
     
     
