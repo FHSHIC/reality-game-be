@@ -82,7 +82,7 @@ async def startGame(team: TeamInfo, user: dict = Depends(verifyAcessToken)):
     
     
 
-@router.websocket("/waiting/{teamId}/{userId}")
+@router.websocket("/waiting/{teamId}")
 async def teamWait(websocket: WebSocket, teamId: str, userId: str):
     thisTeam = teamDb.getTeam(teamId)
     if not thisTeam:
