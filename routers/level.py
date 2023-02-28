@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from utils.database import LevelDb
+from utils.database import LevelDb, TeamDb
 from utils.dependencies import verifyAcessToken
 
 router = APIRouter(
@@ -10,6 +10,7 @@ router = APIRouter(
 )
 
 levelDb = LevelDb()
+teamDb = TeamDb()
 
 class LevelNotResolve(BaseModel):
     hints: list
@@ -18,6 +19,7 @@ class LevelResolve(LevelNotResolve):
     nextDramaId: str
 
 class Resolve(BaseModel):
+    gamecode: str
     levelId: str
     answer: str
 
@@ -31,5 +33,5 @@ async def checkResolve(resolve: Resolve):
     thisLevel = levelDb.getLevel(resolve.levelId)
     if thisLevel["answer"] != resolve.answer:
         return LevelNotResolve(**thisLevel)
-    
+    teamDb.updateNowDramaId(resolve.gamecode, thisLevel["nextDramaId"])
     return LevelResolve(**thisLevel)

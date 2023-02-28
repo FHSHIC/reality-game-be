@@ -84,15 +84,29 @@ class TeamDb:
     
     def deleteFromTeam(self, teamId: str, userId: str):
         team = self.db.find_one(teamId)
-        for i, member in team["members"]:
-            if member != userId:
-                continue
-            del(team["members"][i])
-            break
+        # for i, member in team["members"]:
+        #     if member != userId:
+        #         continue
+        #     del(team["members"][i])
+        #     break
+        try:
+            team["member"].remove(userId)
+        except:
+            return None
         self.db.update_one(teamId, {
             "members": team["members"]
         })
         return self.db.find_one(teamId)
+    
+    def updateNowDramaId(self, teamId: str, newDramaId: str):
+        team = self.getTeam(teamId)
+        if not team:
+            return None
+        self.db.update_one(teamId, {
+            "nowDramaId": newDramaId
+        })
+        return self.db.find_one(teamId)
+        
         
 class DbDrama(BaseModel):
     level: str
