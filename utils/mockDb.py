@@ -8,8 +8,8 @@ class MockDb:
     def __init__(self, collectName):
         dbs = dict()
 
-        dbList = ["users", "levels", "hints", "dramas"]
-        jsonList = ["UserMock.json", "LevelMock.json", "HintMock.json", "DramaMock.json"]
+        dbList = ["users", "levels", "hints", "dramas", "teams"]
+        jsonList = ["UserMock.json", "LevelMock.json", "HintMock.json", "DramaMock.json", "TeamMock.json"]
 
         for i, db in enumerate(dbList):
             with open(f"{os.path.dirname(__file__)}/{jsonList[i]}") as f:
