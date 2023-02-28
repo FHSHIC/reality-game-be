@@ -36,7 +36,7 @@ def generateAccessToken(account, expiredTime):
 def generateHashPassword(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-@router.get("/me")
+@router.get("/me", response_model=UserInfo)
 async def getCurrentUser(user = Depends(verifyAcessToken)):
     return user
 
@@ -61,11 +61,11 @@ async def regist(user: UserRegist):
     expiredTime = datetime.format(datetime.deltaTime("now", defaultExpiredSeconds))
     accessToken = generateAccessToken(user.account, expiredTime)
     theUser.update({
-        "_id": user.account,
         "password": generateHashPassword(user.password),
         "accessToken": accessToken,
         "expiredTime": expiredTime,
         "gameHistory": [],
         "userState": {}
     })
+    print(theUser)
     return userDb.registUser(theUser)

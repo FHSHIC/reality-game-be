@@ -22,8 +22,8 @@ class MockDb:
         self.col = dbs[collectName]
         self.colId = [colData["_id"] for colData in self.col]
     
-    def find(slef, filte: dict = None) -> list:
-        return list(filter(lambda x: [x[f] == filte[f] for f in filte.keys()]))
+    def find(self, filte: dict = None) -> list:
+        return list(filter(lambda x: [x[f] == filte[f] for f in filte.keys()], self.col))
     
     def find_one(self, dataId) -> dict | None:
         result = list(filter(lambda x: x["_id"] == dataId, self.col))
@@ -50,6 +50,7 @@ class MockDb:
             dataId = uuid.uuid4().hex
             if dataId not in self.colId:
                 insertData["_id"] = dataId
+                self.colId.append(dataId)
                 break
             
         self.col.append(insertData)
