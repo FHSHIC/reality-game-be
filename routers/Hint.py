@@ -6,9 +6,6 @@ deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 hint = deta.Base("Hint")
 
 class Hint(BaseModel):
-    # _id:str = None
-    # hintName:str = None
-    # hintContent:str = None
     token:str
 
 @router.post("/hint")

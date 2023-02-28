@@ -8,10 +8,6 @@ deta = Deta("c01qtCTDXhh4_KZmeWaZrF5u2WJjFReeKNxTQh5X79BiU")
 dramadb = deta.Base("drama")
 
 class Drama (BaseModel):
-    # _id:str = None
-    # dramaContent:List[str] = None
-    # dramaToken:str = None
-    # nextDramaId:str = None
     token:str 
 
 @router.post("/drama")

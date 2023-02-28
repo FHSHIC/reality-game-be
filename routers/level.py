@@ -35,7 +35,7 @@ def get_Answer(Answercheck:Answercheck):
         raise HTTPException(status_code=403, detail="請檢查token是否輸入正確")
     if leveldb.get(Answercheck.token) == None:
         raise HTTPException(status_code=403, detail="請檢查token是否輸入正確")
-    if Answercheck.Answer != leveldb.get(Answercheck.token)["答案"]:
+    if Answercheck.Answer != leveldb.get(Answercheck.token)["answer"]:
         raise HTTPException(status_code=403, detail="請檢查答案是否輸入正確")
     return {"message":"答案正確"}
     
