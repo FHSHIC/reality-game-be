@@ -7,8 +7,8 @@ import DetaBase
 class AccessToken(BaseModel):
     token: str
 
-class DramaID(BaseModel):
-    id: str
+class DramaToken(BaseModel):
+    dramaToken: str
 
 
 @router.post("/access_token")
@@ -19,9 +19,9 @@ async def create_access_token(access_token: AccessToken):
         raise HTTPException(status_code=400, detail="Invalid access token!")
 
 
-@router.get("/drama/{drama_id}")
-async def get_drama_by_id(drama_id: str):
-    drama = dramadb.get(drama_id)
+@router.get("/drama/{dramaToken}")
+async def get_drama_by_token(dramaToken: str):
+    drama = dramadb.get(dramaToken)
     if drama:
         return drama
     else:
