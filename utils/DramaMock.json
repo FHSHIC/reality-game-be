@@ -1,0 +1,42 @@
+[
+    {
+        "_id": "8d969eef6ecad3c2",
+        "level": 1,
+        "nextDramaId": "3ca12020c",
+        "levelId": "3a629280e68",
+        "dramaContents": [
+            [
+                {
+                    "speaker": "引導",
+                    "speakContent": "請前往復興大樓穿堂"
+                },
+                {
+                    "speaker": "",
+                    "speakContent": "又是百無聊賴的週四，在第二節下課醒來，發現大家都因為去自主學習，已經不在教室了，因為當初沒有選課，被分配到國文科的彈性學習，老師的課程都在教大家寫習作，無聊到爆炸，實在讓我很想翹課。"
+                },
+                {
+                    "speaker": "",
+                    "speakContent": "這裡怎麼有一張字跡工整的紙條，紙條的一部分還被我的口水沾溼了。"
+                },
+                {
+                    "speaker": "",
+                    "speakContent": "反正不想上課，去看看那在幹嘛好了。"
+                }
+            ],
+            [
+                {
+                    "speaker": "臭臉男",
+                    "speakContent": "你在這幹嘛"
+                },
+                {
+                    "speaker": "臭臉男",
+                    "speakContent": "有什麼事嗎?"
+                },
+                {
+                    "speaker": "看似陽光的男生",
+                    "speakContent": "你不要那麼激動，sorry，他比較社恐啦"
+                }
+            ]
+        ]
+    }
+]
