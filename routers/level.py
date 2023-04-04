@@ -13,6 +13,7 @@ levelDb = LevelDb()
 teamDb = TeamDb()
 
 class LevelNotResolve(BaseModel):
+    levelContent: str
     hints: list
 
 class LevelResolve(LevelNotResolve):

@@ -10,6 +10,12 @@ class ConnectManager():
         if not self.activateConnections.get(groupId):
             self.activateConnections[groupId] = []
         self.activateConnections[groupId].append({"websocket":websocket, "user": userId})
+    
+    def findUser(self, groupId: str, userId: str):
+        filterResult = list(filter(lambda x: userId == x["user"], self.activateConnections[groupId]))
+        if len(filterResult) == 0:
+            return None
+        return filterResult[0]
 
     def disconnect(self, websocket: WebSocket, groupId: str, userId: str):
         self.activateConnections[groupId].remove({"websocket": websocket, "user": userId})
