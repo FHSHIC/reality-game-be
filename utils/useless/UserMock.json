@@ -1,0 +1,22 @@
+[
+  {
+    "_id": "test@test.com",
+    "account": "test@test.com",
+    "password": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "username": "Test",
+    "accessToken": "fb1df0dfb30f910ebf6c76f82b2cf295682c6f71d492acf12a728c01d931c67f",
+    "expiredTime": "2023-03-01T23:23:21+08:00",
+    "gameHistory": [],
+    "userState": {}
+  },
+  {
+    "account": "test2@test.com",
+    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+    "username": "test2",
+    "accessToken": "5993faded890a6a506ab4acbb189d05c6943455022977500798ecb6824e5d5bc",
+    "expiredTime": "2023-03-02T01:01:41+08:00",
+    "gameHistory": [],
+    "userState": {},
+    "_id": "test2@test.com"
+  }
+]

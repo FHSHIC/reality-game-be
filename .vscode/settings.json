@@ -1,0 +1,6 @@
+{
+    "ruff.fixAll": true,
+    "ruff.args": [
+        "--ignore=E501"
+    ]
+}
