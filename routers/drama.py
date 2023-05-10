@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter
 from utils.database import DramaDb
 
 router = APIRouter(

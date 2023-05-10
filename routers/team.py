@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from utils.dependencies import verifyAcessToken
 from utils.database import TeamDb, UserDb
+from routers.user import UserInfo
 from utils.WebSocketManager import ConnectManager
 
 router = APIRouter(
@@ -122,6 +123,21 @@ async def continueGame(team:Game, user: dict = Depends(verifyAcessToken)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't continue the game")
     await manager.broadcast(team.gamecode, {"isStart": True, "nowDramaId": thisTeam["nowDramaId"]})
     return thisTeam
+
+@router.post("/game-finish", response_model=UserInfo)
+async def finishGame(team: Game, user: dict = Depends(verifyAcessToken)):
+    thisTeam = teamDb.getTeam(team.gamecode)
+    if not thisTeam:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="no this team")
+    if user["account"] not in thisTeam["members"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the team")
+    if thisTeam["nowDramaId"] != "fin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you are not in the last level")
+    userDb.UserCurrentGameFinish(user["account"])
+    if user["account"] != thisTeam["members"][0]:
+        return userDb.getUser(user["account"])
+    teamDb.finishCurrentGame(team.gamecode)
+    return userDb.getUser(user["account"])
     
 
 @router.websocket("/waiting/{teamId}/{userId}")
@@ -139,12 +155,16 @@ async def teamWait(websocket: WebSocket, teamId: str, userId: str):
     members = []
     for member in thisTeam["members"]:
         members.append(userDb.getUser(member)["username"])
-    await manager.broadcast(teamId, {"members": members,"onWaitMember": onWaitMembers, "isStart": False})
+    await manager.broadcast(teamId, {"members": members,"onWaitMember": onWaitMembers, "isStart": False, "teamName": thisTeam["teamName"]})
     try:
         while True:
             await websocket.receive_json()
     except WebSocketDisconnect:
         manager.disconnect(websocket, teamId, userId)
+        onWaitMembers = []
+        for member in manager.activateConnections[teamId]:
+            onWaitMembers.append(userDb.getUser(member["user"])["username"])
+        await manager.broadcast(teamId, {"members": members,"onWaitMember": onWaitMembers, "isStart": False, "teamName": thisTeam["teamName"]})
         if len(manager.activateConnections[teamId]) == 0:
             del(manager.activateConnections[teamId])
     

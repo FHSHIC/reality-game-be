@@ -1,14 +1,15 @@
-from typing import List
 from pydantic import BaseModel
 from pymongo import MongoClient
+import os
 
-dbUsername = "admin"
-dbPassword = "fhsh@640641"
-dbAuthSource = "admin"
+dbUrl = "localhost"
+dbUsername = os.environ["DB_USERNAME"]
+dbPassword = os.environ["DB_PASSWORD"]
+dbAuthSource = os.environ["DB_AUTH_SOURCE"]
 
 class DataBase():
     def __init__(self, dbName):
-        self.__client = MongoClient("localhost", username=dbUsername, password=dbPassword, authSource=dbAuthSource)
+        self.__client = MongoClient(dbUrl, username=dbUsername, password=dbPassword, authSource=dbAuthSource)
         self.db = self.__client[dbName]
     
     def getCollection(self, collectionName):
@@ -52,6 +53,12 @@ class UserDb:
             user["gameHistory"].append(partGameCode)
             self.db.update_one({"_id": userId}, {"$set": {"gameHistory": user["gameHistory"]}})
         self.db.update_one({"_id": userId}, {"$set": {"userState": {"gamecode": partGameCode, "isActivate": isActivate}}})
+        return self.db.find_one(userId)
+    
+    def UserCurrentGameFinish(self, userId):
+        user = self.getUser(userId)
+        user["gameHistory"].append(user["userState"]["gamecode"])
+        self.db.update_one({"_id": userId}, {"$set": {"userState": {}, "gameHistory": user["gameHistory"]}})
         return self.db.find_one(userId)
     
     def findAcessToken(self, accessToken):
@@ -111,6 +118,14 @@ class TeamDb:
             "nowDramaId": newDramaId
         }})
         return self.db.find_one(teamId)
+    
+    def finishCurrentGame(self, teamId: str):
+        team = self.getTeam(teamId)
+        if not team:
+            return None
+        self.db.update_one({"_id": teamId}, {"$set": {
+            "isStart": False
+        }})
         
         
 class DbDrama(BaseModel):
@@ -127,7 +142,7 @@ class DramaDb:
         return self.db.find_one(dramaId)
     
     def getDramas(self):
-        return list(self.db.find())
+        return list(self.db.find({}))
 
 class DbHint(BaseModel):
     hintContent: str
@@ -138,6 +153,9 @@ class HintDb:
     
     def getHint(self, hintId: str):
         return self.db.find_one(hintId)
+    
+    def getHints(self):
+        return list(self.db.find())
 
 class DbLevel(BaseModel):
     answer: str
