@@ -1,3 +1,4 @@
+import os
 from fastapi import HTTPException, status, Header
 from utils.dateTime import TimeDate
 from utils.database import UserDb
@@ -14,3 +15,8 @@ async def verifyAcessToken(access_token: str =  Header()):
     if datetime.compareAThanB(now, userExpiredTime):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="token expired")
     return user
+
+async def verifyUploadSecret(upload_secret: str = Header()):
+    environ_secret = os.environ["UPLOAD_SECRET"]
+    if environ_secret != upload_secret:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="secret is dead.")

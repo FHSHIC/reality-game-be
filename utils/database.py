@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 import os
 
-dbUrl = "localhost"
+dbUrl = os.environ["DB_URL"]
 dbUsername = os.environ["DB_USERNAME"]
 dbPassword = os.environ["DB_PASSWORD"]
 dbAuthSource = os.environ["DB_AUTH_SOURCE"]
@@ -15,7 +15,7 @@ class DataBase():
     def getCollection(self, collectionName):
         return self.db[collectionName]
 
-db = DataBase("reality-game")
+db = DataBase(os.environ["DB_NAME"])
     
 
 class DbUser(BaseModel):

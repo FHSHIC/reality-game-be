@@ -2,7 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import user, team, drama, level, hint
+from routers import user, team, drama, level, hint, upload
 
 app = FastAPI(root_path="/api")
 
@@ -19,6 +19,7 @@ app.include_router(team.router)
 app.include_router(drama.router)
 app.include_router(level.router)
 app.include_router(hint.router)
+app.include_router(upload.router)
 
 
 @app.get("/")
