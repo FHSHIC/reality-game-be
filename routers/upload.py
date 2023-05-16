@@ -1,9 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from utils.dependencies import verifyUploadSecret
 
 router = APIRouter(
     prefix="/upload",
-    dependencies=[verifyUploadSecret]
+    dependencies=[Depends(verifyUploadSecret)]
 )
 
 

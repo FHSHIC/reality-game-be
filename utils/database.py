@@ -32,7 +32,7 @@ class UserDb:
     def __init__(self):
         self.db = db.getCollection("users")
     
-    def getUser(self, userId):
+    def getUser(self, userId: str):
         return self.db.find_one(userId)
     
     def registUser(self, user:dict):
@@ -52,13 +52,13 @@ class UserDb:
             user = self.db.find_one(userId)
             user["gameHistory"].append(partGameCode)
             self.db.update_one({"_id": userId}, {"$set": {"gameHistory": user["gameHistory"]}})
-        self.db.update_one({"_id": userId}, {"$set": {"userState": {"gamecode": partGameCode, "isActivate": isActivate}}})
+        self.db.update_one({"_id": userId}, {"$set": {"userState": {"gamecode": partGameCode, "isActive": isActivate}}})
         return self.db.find_one(userId)
     
     def UserCurrentGameFinish(self, userId):
         user = self.getUser(userId)
         user["gameHistory"].append(user["userState"]["gamecode"])
-        self.db.update_one({"_id": userId}, {"$set": {"userState": {}, "gameHistory": user["gameHistory"]}})
+        self.db.update_one({"_id": userId}, {"$set": {"userState": {"gamecode": "", "isActive": False}, "gameHistory": user["gameHistory"]}})
         return self.db.find_one(userId)
     
     def findAcessToken(self, accessToken):
@@ -72,7 +72,7 @@ class DbTeam(BaseModel):
     members: list
     isUsed: bool
     isStart: bool
-    nowDramaId: str
+    nowLevel: int
 
 class TeamDb:
     def __init__(self):
@@ -96,26 +96,35 @@ class TeamDb:
     
     def memberJoin(self, teamId: str, userId: str):
         team = self.db.find_one(teamId)
-        team["members"].append(userId)
+        user = UserDb().getUser(userId)
+        team["members"].append({"userId": userId, "username": user["username"]})
         self.db.update_one({"_id": teamId}, {"$set": {
             "members": team["members"]
         }})
         return self.db.find_one(teamId)
+    
+    def findMemberIndex(self, teamId: str, userId: str) -> int:
+        team = self.db.find_one(teamId)
+        for i, v in enumerate(team["members"]):
+            if v["userId"] == userId:
+                return i
+        return -1
     
     def deleteFromTeam(self, teamId: str, userId: str):
         team = self.db.find_one(teamId)
-        team["member"].remove(userId)
+        memberIndex = self.findMemberIndex(teamId, userId)
+        team["members"].pop(memberIndex)
         self.db.update_one({"_id": teamId}, {"$set": {
             "members": team["members"]
         }})
         return self.db.find_one(teamId)
     
-    def updateNowDramaId(self, teamId: str, newDramaId: str):
+    def updateNowLevel(self, teamId: str, nowLevel: int):
         team = self.getTeam(teamId)
         if not team:
             return None
         self.db.update_one({"_id": teamId}, {"$set": {
-            "nowDramaId": newDramaId
+            "nowLevel": nowLevel
         }})
         return self.db.find_one(teamId)
     
@@ -125,6 +134,13 @@ class TeamDb:
             return None
         self.db.update_one({"_id": teamId}, {"$set": {
             "isStart": False
+        }})
+    def updateNextLevelBeacon(self, teamId: str, beacon: str):
+        team = self.getTeam(teamId)
+        if not team:
+            return None
+        self.db.update_one({"_id": teamId}, {"$set": {
+            "beacon": beacon
         }})
         
         
@@ -160,7 +176,7 @@ class HintDb:
 class DbLevel(BaseModel):
     answer: str
     hints: list
-    nextDramaId: str
+    beacon: str
 
 class LevelDb:
     def __init__(self):

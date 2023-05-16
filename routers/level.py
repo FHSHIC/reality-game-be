@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from utils.database import LevelDb, TeamDb
@@ -17,7 +17,7 @@ class LevelNotResolve(BaseModel):
     hints: list
 
 class LevelResolve(LevelNotResolve):
-    nextDramaId: str
+    beacon: str
 
 class Resolve(BaseModel):
     gamecode: str
@@ -34,5 +34,6 @@ async def checkResolve(resolve: Resolve):
     thisLevel = levelDb.getLevel(resolve.levelId)
     if thisLevel["answer"] != resolve.answer:
         return LevelNotResolve(**thisLevel)
-    teamDb.updateNowDramaId(resolve.gamecode, thisLevel["nextDramaId"])
+    teamDb.updateNextLevelBeacon(resolve.gamecode, thisLevel["beacon"])
     return LevelResolve(**thisLevel)
+    

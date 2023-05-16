@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, WebSocket, WebSoc
 from pydantic import BaseModel
 
 from utils.dependencies import verifyAcessToken
-from utils.database import TeamDb, UserDb
+from utils.database import TeamDb, UserDb, LevelDb
 from routers.user import UserInfo
 from utils.WebSocketManager import ConnectManager
 
@@ -23,8 +23,9 @@ class TeamInfo(BaseModel):
 
 class Team(TeamInfo):
     members: list
-    nowDramaId: str
+    nowLevel: int
     isTeamLeader: bool = False
+    beacon: list = []
 
 class TeamResponse(Team):
     isStart: bool
@@ -34,9 +35,10 @@ async def getTeam(gamecode: str, user: dict = Depends(verifyAcessToken)):
     team = teamDb.getTeam(gamecode)
     if not team:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="you can't reach the team...")
-    if user["account"] not in team["members"]:
+    memberIndex = teamDb.findMemberIndex(gamecode, user["account"])
+    if memberIndex == -1:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you are not in the team...")
-    if user["account"] == team["members"][0]:
+    if memberIndex == 0:
         team.update({
             "isTeamLeader": True
         })
@@ -51,20 +53,22 @@ async def joinTeam(gameCode: Game, user: dict = Depends(verifyAcessToken)):
         raise HTTPException(status.HTTP_423_LOCKED, detail="this game code has already used")
     if team["isStart"]:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="this game is on.")
-    if user["account"] in team["members"]:
-        if user["account"] == team["members"][0]:
+    memberIndex = teamDb.findMemberIndex(gameCode.gamecode, user["account"])
+    if memberIndex != -1:
+        if memberIndex == 0:
             team.update({
                 "isTeamLeader": True
             })
         return team
+    
     team = teamDb.memberJoin(gameCode.gamecode, user["account"])
-    if user["account"] == team["members"][0]:
+    memberIndex = teamDb.findMemberIndex(gameCode.gamecode, user["account"])
+    if memberIndex == 0:
         team.update({
             "isTeamLeader": True
         })
     
     return team
-    
 
 
 @router.post("/set-team-name")
@@ -72,10 +76,11 @@ async def setTeamName(team: TeamInfo, user: dict = Depends(verifyAcessToken)):
     thisTeam = teamDb.getTeam(team.gamecode)
     if not thisTeam:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="you can't set team name")
-    if user["account"] != thisTeam["members"][0]:
+    memberIndex = teamDb.findMemberIndex(team.gamecode, user["account"])
+    if memberIndex != 0:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't set team name")
     thisTeam = teamDb.setName(team.gamecode, team.teamName)
-    if user["account"] == thisTeam["members"][0]:
+    if memberIndex == 0:
         thisTeam.update({
             "isTeamLeader": True
         })
@@ -96,16 +101,17 @@ async def startGame(team: Game, user: dict = Depends(verifyAcessToken)):
     thisTeam = teamDb.getTeam(team.gamecode)
     if not thisTeam:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="no this team")
-    if user["account"] not in thisTeam["members"]:
+    memberIndex = teamDb.findMemberIndex(team.gamecode, user["account"])
+    if memberIndex == -1:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the team")
     if not manager.findUser(team.gamecode, user["account"]):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the waiting line")
-    if user["account"] != thisTeam["members"][0]:
+    if memberIndex != 0:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't start the game")
     teamDb.activeTeam(team.gamecode)
-    for memberId in thisTeam["members"]:
-        userDb.updateUserActiveState(memberId, team.gamecode, True)
-    await manager.broadcast(team.gamecode, {"isStart": True, "nowDramaId": thisTeam["nowDramaId"]})
+    for member in thisTeam["members"]:
+        userDb.updateUserActiveState(member["userId"], team.gamecode, True)
+    await manager.broadcast(team.gamecode, {"isStart": True, "nowLevel": thisTeam["nowLevel"]})
     return thisTeam
 
 
@@ -137,6 +143,17 @@ async def finishGame(team: Game, user: dict = Depends(verifyAcessToken)):
         return userDb.getUser(user["account"])
     teamDb.finishCurrentGame(team.gamecode)
     return userDb.getUser(user["account"])
+
+@router.get("/resolve-beacon")
+async def checkBeacon(teamId: str, beacon: str):
+    nextLevel = LevelDb().getLevel(beacon)
+    if not nextLevel:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "not a beacon...")
+    thisTeam = teamDb.getTeam(teamId)
+    if thisTeam["nowLevel"] + 1 != nextLevel["level"]:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "not a beacon...")
+    teamDb.updateNowLevel(teamId, nextLevel["level"])
+    return teamDb.getTeam(teamId)
     
 
 @router.websocket("/waiting/{teamId}/{userId}")
@@ -145,25 +162,37 @@ async def teamWait(websocket: WebSocket, teamId: str, userId: str):
     
     if not thisTeam:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="you can't reach this team.")
-    if userId not in thisTeam["members"]:
+    memberIndex = teamDb.findMemberIndex(teamId, userId)
+    if memberIndex == -1:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you are not in the team.")
     await manager.connect(websocket, teamId, userId)
     onWaitMembers = []
     for member in manager.activateConnections[teamId]:
-        onWaitMembers.append(userDb.getUser(member["user"])["username"])
-    members = []
-    for member in thisTeam["members"]:
-        members.append(userDb.getUser(member)["username"])
-    await manager.broadcast(teamId, {"members": members,"onWaitMember": onWaitMembers, "isStart": False, "teamName": thisTeam["teamName"]})
+        onWaitMembers.append({
+            "username": userDb.getUser(member["user"])["username"],
+            "userId": member["user"]
+        })
+    thisTeam.update({"teamLeader": thisTeam["members"][0]["userId"]})
+    await manager.broadcast(teamId, {"onWaitMember": onWaitMembers, "isStart": False, "team": thisTeam})
     try:
         while True:
             await websocket.receive_json()
     except WebSocketDisconnect:
         manager.disconnect(websocket, teamId, userId)
-        onWaitMembers = []
-        for member in manager.activateConnections[teamId]:
-            onWaitMembers.append(userDb.getUser(member["user"])["username"])
-        await manager.broadcast(teamId, {"members": members,"onWaitMember": onWaitMembers, "isStart": False, "teamName": thisTeam["teamName"]})
-        if len(manager.activateConnections[teamId]) == 0:
-            del(manager.activateConnections[teamId])
+        thisTeam = teamDb.getTeam(teamId)
+        if thisTeam["isStart"]:
+            await manager.broadcast(teamId, {"onWaitMember": onWaitMembers, "isStart": True, "team": thisTeam})
+        else:
+            onWaitMembers = []
+            for member in manager.activateConnections[teamId]:
+                onWaitMembers.append({
+                    "username": userDb.getUser(member["user"])["username"],
+                    "userId": member["user"],
+                })
+            teamDb.deleteFromTeam(teamId, userId)
+            thisTeam.update({"teamLeader": thisTeam["members"][0]["userId"]})
+            await manager.broadcast(teamId, {"onWaitMember": onWaitMembers, "isStart": False, "team": thisTeam})
+            if len(manager.activateConnections[teamId]) == 0:
+                teamDb.setName(teamId, "")
+                del(manager.activateConnections[teamId])
     

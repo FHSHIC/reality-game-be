@@ -65,7 +65,10 @@ async def regist(user: UserRegist):
         "accessToken": accessToken,
         "expiredTime": expiredTime,
         "gameHistory": [],
-        "userState": {}
+        "userState": {
+            "gamecode": "",
+            "isActive": False,
+        }
     })
     print(theUser)
     return userDb.registUser(theUser)
