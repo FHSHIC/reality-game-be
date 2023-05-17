@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from pymongo import MongoClient
+import time
 import os
 
 dbUrl = os.environ["DB_URL"]
@@ -73,6 +74,7 @@ class DbTeam(BaseModel):
     isUsed: bool
     isStart: bool
     nowLevel: int
+    beacon: str
 
 class TeamDb:
     def __init__(self):
@@ -85,6 +87,7 @@ class TeamDb:
         self.db.update_one({"_id": teamId}, {"$set": {
             "isUsed": True,
             "isStart": True,
+            "startTime": (time.time_ns() // 1000000)
         }})
         return self.db.find_one(teamId)
     
@@ -133,7 +136,8 @@ class TeamDb:
         if not team:
             return None
         self.db.update_one({"_id": teamId}, {"$set": {
-            "isStart": False
+            "isStart": False,
+            "endTime": (time.time_ns() // 1000000)
         }})
     def updateNextLevelBeacon(self, teamId: str, beacon: str):
         team = self.getTeam(teamId)
@@ -141,6 +145,13 @@ class TeamDb:
             return None
         self.db.update_one({"_id": teamId}, {"$set": {
             "beacon": beacon
+        }})
+    def addExtraTimeByUsingHint(self, teamId:str, millisecond: int):
+        team = self.getTeam(teamId)
+        if not team:
+            return None
+        self.db.update_one({"_id": teamId}, {"$set": {
+            "extraTime": teamId["extraTime"]+millisecond
         }})
         
         
@@ -177,6 +188,8 @@ class DbLevel(BaseModel):
     answer: str
     hints: list
     beacon: str
+    level: int
+    levelContent: str
 
 class LevelDb:
     def __init__(self):
@@ -184,4 +197,9 @@ class LevelDb:
     
     def getLevel(self, levelId: str):
         return self.db.find_one(levelId)
+    
+    def getLevelByLevelNum(self, levelNum: int):
+        searchQuery = {"level": levelNum}
+        return self.db.find_one(searchQuery)
+        
     

@@ -25,10 +25,16 @@ class Team(TeamInfo):
     members: list
     nowLevel: int
     isTeamLeader: bool = False
-    beacon: list = []
+    beacon: str
+    startTime: int
+    endTime: int
 
 class TeamResponse(Team):
     isStart: bool
+
+class BeaconResolver(BaseModel):
+    teamId: str
+    beacon: str
     
 @router.get("/{gamecode}", response_model=TeamResponse)
 async def getTeam(gamecode: str, user: dict = Depends(verifyAcessToken)):
@@ -115,45 +121,48 @@ async def startGame(team: Game, user: dict = Depends(verifyAcessToken)):
     return thisTeam
 
 
-@router.post("/game-continue", response_model=TeamResponse)
-async def continueGame(team:Game, user: dict = Depends(verifyAcessToken)):
-    thisTeam = teamDb.getTeam(team.gamecode)
-    if not thisTeam:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="no this team")
-    if user["account"] not in thisTeam["members"]:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the team")
-    if not manager.findUser(team.gamecode, user["account"]):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the waiting line")
-    if user["account"] != thisTeam["members"][0]:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't continue the game")
-    await manager.broadcast(team.gamecode, {"isStart": True, "nowDramaId": thisTeam["nowDramaId"]})
-    return thisTeam
 
 @router.post("/game-finish", response_model=UserInfo)
 async def finishGame(team: Game, user: dict = Depends(verifyAcessToken)):
     thisTeam = teamDb.getTeam(team.gamecode)
     if not thisTeam:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="no this team")
-    if user["account"] not in thisTeam["members"]:
+    memberIndex = teamDb.findMemberIndex(team.gamecode, user["account"])
+    if memberIndex == -1:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the team")
-    if thisTeam["nowDramaId"] != "fin":
+    if thisTeam["beacon"] != "tech-debt":
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you are not in the last level")
-    userDb.UserCurrentGameFinish(user["account"])
-    if user["account"] != thisTeam["members"][0]:
-        return userDb.getUser(user["account"])
+    if memberIndex != 0:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="you are not the capton of this team")
+    onWaitMembers = []
+    for onWaitMember in manager.activateConnections[team.gamecode]:
+        onWaitMembers.append({
+            "username": userDb.getUser(onWaitMember["user"])["username"],
+            "userId": onWaitMember["user"]
+        })
+    if len(onWaitMembers) != len(thisTeam["members"]):
+        raise HTTPException(status.HTTP_406_NOT_ACCEPTABLE, detail="Could not finish the game until all members arrive the waiting page.")
+    for member in thisTeam["members"]:
+        userDb.UserCurrentGameFinish(member["userId"])
     teamDb.finishCurrentGame(team.gamecode)
+    await manager.broadcast(team.gamecode, {"isEnd": True, "isStart": False, "team": thisTeam})
+    
     return userDb.getUser(user["account"])
 
-@router.get("/resolve-beacon")
-async def checkBeacon(teamId: str, beacon: str):
-    nextLevel = LevelDb().getLevel(beacon)
+@router.post("/resolve-beacon")
+async def checkBeacon(resolver: BeaconResolver):
+    if (resolver.beacon == "tech-debt"):
+        thisTeam = teamDb.getTeam(resolver.teamId)
+        teamDb.updateNowLevel(resolver.teamId, 6)
+        return teamDb.getTeam(resolver.teamId)
+    nextLevel = LevelDb().getLevel(resolver.beacon)
     if not nextLevel:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "not a beacon...")
-    thisTeam = teamDb.getTeam(teamId)
+    thisTeam = teamDb.getTeam(resolver.teamId)
     if thisTeam["nowLevel"] + 1 != nextLevel["level"]:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "not a beacon...")
-    teamDb.updateNowLevel(teamId, nextLevel["level"])
-    return teamDb.getTeam(teamId)
+    teamDb.updateNowLevel(resolver.teamId, nextLevel["level"])
+    return teamDb.getTeam(resolver.teamId)
     
 
 @router.websocket("/waiting/{teamId}/{userId}")
