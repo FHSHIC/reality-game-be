@@ -151,7 +151,7 @@ class TeamDb:
         if not team:
             return None
         self.db.update_one({"_id": teamId}, {"$set": {
-            "extraTime": teamId["extraTime"]+millisecond
+            "extraTime": team["extraTime"]+millisecond
         }})
         
         
@@ -173,6 +173,7 @@ class DramaDb:
 
 class DbHint(BaseModel):
     hintContent: str
+    teamsWhoGetTheHint: list
     
 class HintDb:
     def __init__(self):
@@ -181,8 +182,15 @@ class HintDb:
     def getHint(self, hintId: str):
         return self.db.find_one(hintId)
     
-    def getHints(self):
-        return list(self.db.find())
+    def updateTeamsWhoGetTheHint(self, hintId: str, teamId: str):
+        thisHint = self.getHint(hintId)
+        if thisHint.get("teamsWhoGetTheHint") is None:
+            thisHint["teamsWhoGetTheHint"] = []
+        thisHint["teamsWhoGetTheHint"].append(teamId)
+        self.db.update_one({"_id": hintId}, {"$set": {
+            "teamsWhoGetTheHint": thisHint["teamsWhoGetTheHint"]
+        }})
+    
 
 class DbLevel(BaseModel):
     answer: str
