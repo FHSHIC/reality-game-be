@@ -32,8 +32,10 @@ async def getLevel(levelId: str):
 @router.post("/resolve")
 async def checkResolve(resolve: Resolve):
     thisLevel = levelDb.getLevel(resolve.levelId)
+    thisTeam = teamDb.getTeam(resolve.gamecode)
     if thisLevel["answer"] != resolve.answer:
         return LevelNotResolve(**thisLevel)
-    teamDb.updateNextLevelBeacon(resolve.gamecode, thisLevel["beacon"])
+    if thisTeam["nowLevel"] <= thisLevel["level"]:
+        teamDb.updateNextLevelBeacon(resolve.gamecode, thisLevel["beacon"])
     return LevelResolve(**thisLevel)
     

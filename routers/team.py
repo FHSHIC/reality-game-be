@@ -28,6 +28,7 @@ class Team(TeamInfo):
     beacon: str
     startTime: int
     endTime: int
+    beacon: str = ""
 
 class TeamResponse(Team):
     isStart: bool
@@ -130,7 +131,7 @@ async def finishGame(team: Game, user: dict = Depends(verifyAcessToken)):
     memberIndex = teamDb.findMemberIndex(team.gamecode, user["account"])
     if memberIndex == -1:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="you are not in the team")
-    if thisTeam["beacon"] != "tech-debt":
+    if thisTeam["nowLevel"] != 6:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you are not in the last level")
     if memberIndex != 0:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="you are not the capton of this team")
@@ -153,15 +154,17 @@ async def finishGame(team: Game, user: dict = Depends(verifyAcessToken)):
 async def checkBeacon(resolver: BeaconResolver):
     if (resolver.beacon == "tech-debt"):
         thisTeam = teamDb.getTeam(resolver.teamId)
+        # brutal
         teamDb.updateNowLevel(resolver.teamId, 6)
         return teamDb.getTeam(resolver.teamId)
     nextLevel = LevelDb().getLevel(resolver.beacon)
     if not nextLevel:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "not a beacon...")
     thisTeam = teamDb.getTeam(resolver.teamId)
-    if thisTeam["nowLevel"] + 1 != nextLevel["level"]:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "not a beacon...")
-    teamDb.updateNowLevel(resolver.teamId, nextLevel["level"])
+    # if thisTeam["nowLevel"] + 1 > nextLevel["level"]:
+    #     raise HTTPException(status.HTTP_403_FORBIDDEN, "not a beacon...")
+    if thisTeam["nowLevel"] < nextLevel["level"]:
+        teamDb.updateNowLevel(resolver.teamId, nextLevel["level"])
     return teamDb.getTeam(resolver.teamId)
     
 

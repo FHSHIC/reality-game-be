@@ -2,5 +2,6 @@
     "ruff.fixAll": true,
     "ruff.args": [
         "--ignore=E501"
-    ]
+    ],
+    "editor.fontSize": 16
 }
