@@ -174,6 +174,7 @@ class DramaDb:
 class DbHint(BaseModel):
     hintContent: str
     teamsWhoGetTheHint: list
+    isAnswer: bool
     
 class HintDb:
     def __init__(self):

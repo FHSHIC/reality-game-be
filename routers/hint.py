@@ -13,7 +13,7 @@ levelDb = LevelDb()
 regularHintExtraTime = 10000
 levelAnswerHintExtraTime = 2400000
 
-@router.get("/level-answer/{gamecode}")
+# @router.get("/level-answer/{gamecode}")
 async def getLevelAnswer(gamecode: str, user: dict = Depends(verifyAcessToken)):
     thisTeam = teamDb.getTeam(gamecode)
     if not thisTeam:
@@ -41,7 +41,11 @@ async def getHint(hintId: str, gamecode: str, user: dict = Depends(verifyAcessTo
     if thisHint.get("teamsWhoGetTheHint") is not None:
         if gamecode in thisHint["teamsWhoGetTheHint"]:
             return thisHint
-    teamDb.addExtraTimeByUsingHint(gamecode, regularHintExtraTime)
+    # 如果這個提示為解答的話，那就要加更多時間
+    if thisHint.get("isAnswer"):
+        teamDb.addExtraTimeByUsingHint(gamecode, levelAnswerHintExtraTime)
+    else:
+        teamDb.addExtraTimeByUsingHint(gamecode, regularHintExtraTime)
     hintDb.updateTeamsWhoGetTheHint(hintId, gamecode)
     return thisHint
 
