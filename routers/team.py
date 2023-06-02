@@ -56,6 +56,8 @@ async def joinTeam(gameCode: Game, user: dict = Depends(verifyAcessToken)):
     team = teamDb.getTeam(gameCode.gamecode)
     if not team:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="you can't use this game code...")
+    if len(team["members"]) > 6:
+        raise HTTPException(status.HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS, detail="this game's member is fulled")
     if team["isUsed"]:
         raise HTTPException(status.HTTP_423_LOCKED, detail="this game code has already used")
     if team["isStart"]:
