@@ -83,6 +83,9 @@ class TeamDb:
     def getTeam(self, teamId: str):
         return self.db.find_one(teamId)
     
+    def getTeams(self):
+        return [team for team in self.db.find()]
+    
     def activeTeam(self, teamId: str):
         self.db.update_one({"_id": teamId}, {"$set": {
             "isUsed": True,
@@ -153,6 +156,28 @@ class TeamDb:
         self.db.update_one({"_id": teamId}, {"$set": {
             "extraTime": team["extraTime"]+millisecond
         }})
+    
+    def createNewGamecode(self, gamecode: str):
+        team = self.getTeam(gamecode)
+        if team:
+            return None
+        teamTemplate = {
+            "_id": "00000000",
+            "gamecode": "00000000",
+            "teamName": "",
+            "members": [],
+            "isUsed": False,
+            "isStart": False,
+            "nowLevel": 1,
+            "beacon": "",
+            "startTime": 0,
+            "endTime": 0,
+            "extraTime": 0,
+        }
+        teamTemplate["_id"] = gamecode
+        teamTemplate["gamecode"] = gamecode
+        self.db.insert_one(teamTemplate)
+        return teamTemplate
         
         
 class DbDrama(BaseModel):
