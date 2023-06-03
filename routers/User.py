@@ -57,7 +57,7 @@ async def regist(user: UserRegist):
     oldUser = userDb.getUser(user.account)
     if oldUser:
         raise HTTPException(403, detail="user has been registed")
-    if user.account == "" or user.password == "" or user.username:
+    if user.account == "" or user.password == "" or user.username == "":
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="user account or password can't be blank.")
     theUser = user.dict()
     expiredTime = datetime.format(datetime.deltaTime("now", defaultExpiredSeconds))
@@ -72,5 +72,4 @@ async def regist(user: UserRegist):
             "isActive": False,
         }
     })
-    print(theUser)
     return userDb.registUser(theUser)

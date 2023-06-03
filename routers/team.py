@@ -28,6 +28,7 @@ class Team(TeamInfo):
     beacon: str
     startTime: int
     endTime: int
+    extraTime: int
     beacon: str = ""
 
 class TeamResponse(Team):
@@ -56,7 +57,7 @@ async def joinTeam(gameCode: Game, user: dict = Depends(verifyAcessToken)):
     team = teamDb.getTeam(gameCode.gamecode)
     if not team:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="you can't use this game code...")
-    if len(team["members"]) > 6:
+    if len(team["members"]) > 4:
         raise HTTPException(status.HTTP_451_UNAVAILABLE_FOR_LEGAL_REASONS, detail="this game's member is fulled")
     if team["isUsed"]:
         raise HTTPException(status.HTTP_423_LOCKED, detail="this game code has already used")
@@ -88,7 +89,8 @@ async def setTeamName(team: TeamInfo, user: dict = Depends(verifyAcessToken)):
     memberIndex = teamDb.findMemberIndex(team.gamecode, user["account"])
     if memberIndex != 0:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="you can't set team name")
-    thisTeam = teamDb.setName(team.gamecode, team.teamName)
+    teamName = team.teamName[:6] if len(team.teamName) > 6 else team.teamName
+    thisTeam = teamDb.setName(team.gamecode, teamName)
     if memberIndex == 0:
         thisTeam.update({
             "isTeamLeader": True
@@ -203,7 +205,8 @@ async def teamWait(websocket: WebSocket, teamId: str, userId: str):
                     "username": userDb.getUser(member["user"])["username"],
                     "userId": member["user"],
                 })
-            teamDb.deleteFromTeam(teamId, userId)
+            if not thisTeam["isStart"] and not thisTeam["isUsed"]:
+                teamDb.deleteFromTeam(teamId, userId)
             thisTeam.update({"teamLeader": thisTeam["members"][0]["userId"]})
             await manager.broadcast(teamId, {"onWaitMember": onWaitMembers, "isStart": False, "team": thisTeam})
             if len(manager.activateConnections[teamId]) == 0:

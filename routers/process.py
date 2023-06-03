@@ -8,22 +8,18 @@ router = APIRouter(
     dependencies=[Depends(verifyUploadSecret)]
 )
 
-class UploadGamecodes(BaseModel):
-    gamecodes: list
+class UploadGamecode(BaseModel):
+    gamecode: str
     
 teamDb = TeamDb()
 
-@router.post("/upload/gamecodes")
-async def uploadTeams(upload: UploadGamecodes):
+@router.post("/upload/gamecode")
+async def uploadTeams(upload: UploadGamecode):
     return_data = {
-        "success": [],
-        "failure": [],
+        "success": True,
     }
-    for gamecode in upload.gamecodes:
-        if teamDb.createNewGamecode(gamecode=gamecode) is None:
-            return_data["failure"].append(gamecode)
-        else:
-            return_data["success"].append(gamecode)
+    if teamDb.createNewGamecode(upload.gamecode) is None:
+            return_data["success"] = False
     return return_data
 
 @router.get("/gamecodes")
@@ -32,10 +28,10 @@ async def checkTeams():
     teams = teamDb.getTeams()
     for team in teams:
         if not team["isUsed"]:
-            return_data.update({team["gamecode"]: "尚未使用"})
+            return_data.update({team["gamecode"]: {"status": "尚未使用", "members": team["members"]}})
             continue
         if not team["isStart"]:
-            return_data.update({team["gamecode"]: "已經通關"})
+            return_data.update({team["gamecode"]: {"status": "已經通關", "members": team["members"]}})
             continue
-        return_data.update({team["gamecode"]: "正在闖關"})
+        return_data.update({team["gamecode"]: {"status": "正在闖關", "members": team["members"]}})
     return return_data

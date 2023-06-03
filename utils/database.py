@@ -41,6 +41,7 @@ class UserDb:
         user.update({
             "_id": user["account"]
         })
+        user["username"] = user["username"] if len(user["username"]) <= 10 else user["username"][:10]
         self.db.insert_one(user)
         return self.getUser(user["account"])
     
